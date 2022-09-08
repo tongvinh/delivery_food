@@ -2,7 +2,7 @@ package restaurantbiz
 
 import (
 	"context"
-	"errors"
+	"myapp/common"
 	restaurantmodel "myapp/module/restaurant/model"
 )
 
@@ -15,11 +15,12 @@ type DeleteRestaurantStore interface {
 }
 
 type deleteRestaurantBiz struct {
-	store DeleteRestaurantStore
+	store     DeleteRestaurantStore
+	requester common.Requester
 }
 
-func NewDeleteRestaurantBiz(store DeleteRestaurantStore) *deleteRestaurantBiz {
-	return &deleteRestaurantBiz{store: store}
+func NewDeleteRestaurantBiz(store DeleteRestaurantStore, requester common.Requester) *deleteRestaurantBiz {
+	return &deleteRestaurantBiz{store: store, requester: requester}
 }
 
 func (biz *deleteRestaurantBiz) DeleteRestaurant(context context.Context, id int) error {
@@ -27,11 +28,15 @@ func (biz *deleteRestaurantBiz) DeleteRestaurant(context context.Context, id int
 	oldData, err := biz.store.FindDataWithCondition(context, map[string]interface{}{"id": id})
 
 	if err != nil {
-		return err
+		return common.ErrEntityNotFound(restaurantmodel.EntityName, err)
 	}
 
 	if oldData.Status == 0 {
-		return errors.New("data has been deleted")
+		return common.ErrEntityDeleted(restaurantmodel.EntityName, nil)
+	}
+
+	if oldData.UserId != biz.requester.GetUserId() {
+		return common.ErrNoPermission(nil)
 	}
 
 	if err := biz.store.Delete(context, id); err != nil {
