@@ -6,6 +6,7 @@ import (
 	"myapp/component/appctx"
 	restaurantbiz "myapp/module/restaurant/biz"
 	restaurantmodel "myapp/module/restaurant/model"
+	restaurantrepo "myapp/module/restaurant/repository"
 	restaurantstorage "myapp/module/restaurant/storage"
 	"net/http"
 )
@@ -17,10 +18,7 @@ func ListRestaurant(appCtx appctx.AppContext) gin.HandlerFunc {
 		var pagingData common.Paging
 
 		if err := c.ShouldBind(&pagingData); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-			return
+			panic(common.ErrInvalidRequest(err))
 		}
 
 		pagingData.FullFill()
@@ -28,24 +26,23 @@ func ListRestaurant(appCtx appctx.AppContext) gin.HandlerFunc {
 		var filter restaurantmodel.Filter
 
 		if err := c.ShouldBind(&filter); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-			return
+			panic(common.ErrInvalidRequest(err))
 		}
 
 		var result []restaurantmodel.Restaurant
 
 		store := restaurantstorage.NewSqlStore(db)
-		biz := restaurantbiz.NewListRestaurantBiz(store)
+		//likeStore := restaurantlikestorage.NewSQLStore(db)
+		repo := restaurantrepo.NewListRestaurantRepo(store)
+		biz := restaurantbiz.NewListRestaurantBiz(repo)
 
 		result, err := biz.ListRestaurant(c.Request.Context(), &filter, &pagingData)
 
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-			return
+			panic(err)
+		}
+		for i := range result {
+			result[i].Mask(false)
 		}
 		c.JSON(http.StatusOK, common.NewSuccessResponse(result, pagingData, filter))
 	}

@@ -7,7 +7,7 @@ type Paging struct {
 	Limit int   `json:"limit" form:"limit"`
 	Total int64 `json:"total" form:"total"`
 	//	Support cursor with UID
-	FakeCursor string `json:"fake_cursor" form:"cursor"`
+	FakeCursor string `json:"cursor" form:"cursor"`
 	NextCursor string `json:"next_cursor"`
 }
 

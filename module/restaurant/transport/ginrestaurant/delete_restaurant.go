@@ -7,31 +7,26 @@ import (
 	restaurantbiz "myapp/module/restaurant/biz"
 	restaurantstorage "myapp/module/restaurant/storage"
 	"net/http"
-	"strconv"
 )
 
 func DeleteRestaurant(appCtx appctx.AppContext) func(c *gin.Context) {
-	db := appCtx.GetMainDBConnection()
 
 	return func(c *gin.Context) {
-		id, err := strconv.Atoi(c.Param("id"))
+		db := appCtx.GetMainDBConnection()
+		requester := c.MustGet(common.CurrentUser).(common.Requester)
+		//id, err := strconv.Atoi(c.Param("id"))
+
+		uid, err := common.FromBase58(c.Param("id"))
 
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-			return
+			panic(common.ErrInvalidRequest(err))
 		}
 
 		store := restaurantstorage.NewSqlStore(db)
-		biz := restaurantbiz.NewDeleteRestaurantBiz(store)
+		biz := restaurantbiz.NewDeleteRestaurantBiz(store, requester)
 
-		if err := biz.DeleteRestaurant(c.Request.Context(), id); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-
-			return
+		if err := biz.DeleteRestaurant(c.Request.Context(), int(uid.GetLocalId())); err != nil {
+			panic(err)
 		}
 		c.JSON(http.StatusOK, common.SimpleSuccessResponse(true))
 	}
