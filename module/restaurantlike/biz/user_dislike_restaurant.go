@@ -3,7 +3,7 @@ package rstlikebiz
 import (
 	"context"
 	"log"
-	"myapp/common"
+	"myapp/component/asyncjob"
 	restaurantlikemodel "myapp/module/restaurantlike/model"
 )
 
@@ -35,12 +35,21 @@ func (biz *userDislikeRestaurantBiz) DislikeRestaurant(
 		return restaurantlikemodel.ErrCannotDislikeRestaurant(err)
 	}
 
-	go func() {
+	// Side effect
+	j := asyncjob.NewJob(func(ctx context.Context) error {
+		return biz.decStore.DecreaseLikeCount(ctx, restaurantId)
+	})
+
+	if err := asyncjob.NewGroup(true, j).Run(ctx); err != nil {
+		log.Println(err)
+	}
+
+	/*go func() {
 		defer common.AppRecover()
 		if err := biz.decStore.DecreaseLikeCount(ctx, restaurantId); err != nil {
 			log.Println(err)
 		}
-	}()
+	}()*/
 
 	return nil
 }
