@@ -1,0 +1,270 @@
+create table if not exists carts
+(
+    user_id    int                                 not null,
+    food_id    int                                 not null,
+    quantity   int                                 not null,
+    status     int       default 1                 not null,
+    created_at timestamp default CURRENT_TIMESTAMP null,
+    updated_at timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    primary key (user_id, food_id)
+);
+
+create index food_id
+    on carts (food_id);
+
+create table if not exists categories
+(
+    id          int auto_increment
+        primary key,
+    name        varchar(100)                        not null,
+    description text                                null,
+    icon        json                                null,
+    status      int       default 1                 not null,
+    created_at  timestamp default CURRENT_TIMESTAMP null,
+    updated_at  timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+);
+
+create table if not exists cities
+(
+    id         int auto_increment
+        primary key,
+    title      varchar(100)                        not null,
+    status     int       default 1                 not null,
+    created_at timestamp default CURRENT_TIMESTAMP null,
+    updated_at timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+);
+
+create table if not exists food_likes
+(
+    user_id    int                                 not null,
+    food_id    int                                 not null,
+    created_at timestamp default CURRENT_TIMESTAMP null,
+    updated_at timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    primary key (user_id, food_id)
+);
+
+create index food_id
+    on food_likes (food_id);
+
+create table if not exists food_ratings
+(
+    id         int auto_increment
+        primary key,
+    user_id    int                                 not null,
+    food_id    int                                 not null,
+    point      float     default 0                 null,
+    comment    text                                null,
+    status     int       default 1                 not null,
+    created_at timestamp default CURRENT_TIMESTAMP null,
+    updated_at timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+);
+
+create index food_id
+    on food_ratings (food_id);
+
+create table if not exists foods
+(
+    id            int auto_increment
+        primary key,
+    restaurant_id int                                 not null,
+    category_id   int                                 null,
+    name          varchar(255)                        not null,
+    description   text                                null,
+    price         float                               not null,
+    images        json                                not null,
+    status        int       default 1                 not null,
+    created_at    timestamp default CURRENT_TIMESTAMP null,
+    updated_at    timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+);
+
+create index category_id
+    on foods (category_id);
+
+create index restaurant_id
+    on foods (restaurant_id);
+
+create index status
+    on foods (status);
+
+create table if not exists order_details
+(
+    id          int auto_increment
+        primary key,
+    order_id    int                                 not null,
+    food_origin json                                null,
+    price       float                               not null,
+    quantity    int                                 not null,
+    discount    float     default 0                 null,
+    status      int       default 1                 not null,
+    created_at  timestamp default CURRENT_TIMESTAMP null,
+    updated_at  timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+);
+
+create index order_id
+    on order_details (order_id);
+
+create table if not exists order_trackings
+(
+    id         int auto_increment
+        primary key,
+    order_id   int                                                                            not null,
+    state      enum ('waiting_for_shipper', 'preparing', 'on_the_way', 'delivered', 'cancel') not null,
+    status     int       default 1                                                            not null,
+    created_at timestamp default CURRENT_TIMESTAMP                                            null,
+    updated_at timestamp default CURRENT_TIMESTAMP                                            null on update CURRENT_TIMESTAMP
+);
+
+create index order_id
+    on order_trackings (order_id);
+
+create table if not exists orders
+(
+    id          int auto_increment
+        primary key,
+    user_id     int                                 not null,
+    total_price float                               not null,
+    shipper_id  int                                 null,
+    status      int       default 1                 not null,
+    created_at  timestamp default CURRENT_TIMESTAMP null,
+    updated_at  timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+);
+
+create index shipper_id
+    on orders (shipper_id);
+
+create index user_id
+    on orders (user_id);
+
+create table if not exists restaurant_foods
+(
+    restaurant_id int                                 not null,
+    food_id       int                                 not null,
+    status        int       default 1                 not null,
+    created_at    timestamp default CURRENT_TIMESTAMP null,
+    updated_at    timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    primary key (restaurant_id, food_id)
+);
+
+create index food_id
+    on restaurant_foods (food_id);
+
+create table if not exists restaurant_likes
+(
+    restaurant_id int                                 not null,
+    user_id       int                                 not null,
+    created_at    timestamp default CURRENT_TIMESTAMP null,
+    primary key (restaurant_id, user_id)
+);
+
+create index user_id
+    on restaurant_likes (user_id);
+
+create table if not exists restaurant_ratings
+(
+    id            int auto_increment
+        primary key,
+    user_id       int                                 not null,
+    restaurant_id int                                 not null,
+    point         float     default 0                 not null,
+    comment       text                                null,
+    status        int       default 1                 not null,
+    created_at    timestamp default CURRENT_TIMESTAMP null,
+    updated_at    timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+);
+
+create index restaurant_id
+    on restaurant_ratings (restaurant_id);
+
+create index user_id
+    on restaurant_ratings (user_id);
+
+create table if not exists restaurants
+(
+    id                  int auto_increment
+        primary key,
+    user_id             int                                 null,
+    name                varchar(50)                         not null,
+    addr                varchar(255)                        not null,
+    city_id             int                                 null,
+    lat                 double                              null,
+    lng                 double                              null,
+    cover               json                                null,
+    logo                json                                null,
+    shipping_fee_per_km double    default 0                 null,
+    status              int       default 1                 not null,
+    liked_count         int(6)    default 0                 null,
+    created_at          timestamp default CURRENT_TIMESTAMP null,
+    updated_at          timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+);
+
+create index city_id
+    on restaurants (city_id);
+
+create index owner_id
+    on restaurants (user_id);
+
+create index status
+    on restaurants (status);
+
+create table if not exists user_addresses
+(
+    id         int auto_increment
+        primary key,
+    user_id    int                                 not null,
+    city_id    int                                 not null,
+    title      varchar(100)                        null,
+    icon       json                                null,
+    addr       varchar(255)                        not null,
+    lat        double                              null,
+    lng        double                              null,
+    status     int       default 1                 not null,
+    created_at timestamp default CURRENT_TIMESTAMP null,
+    updated_at timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+);
+
+create index city_id
+    on user_addresses (city_id);
+
+create index user_id
+    on user_addresses (user_id);
+
+create table if not exists user_device_tokens
+(
+    id            int unsigned auto_increment
+        primary key,
+    user_id       int unsigned                                             null,
+    is_production tinyint(1)                     default 0                 null,
+    os            enum ('ios', 'android', 'web') default 'ios'             null comment '1: iOS, 2: Android',
+    token         varchar(255)                                             null,
+    status        smallint unsigned              default 1                 not null,
+    updated_at    timestamp                      default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    created_at    timestamp                      default CURRENT_TIMESTAMP null
+);
+
+create index os
+    on user_device_tokens (os);
+
+create index user_id
+    on user_device_tokens (user_id);
+
+create table if not exists users
+(
+    id         int auto_increment
+        primary key,
+    email      varchar(50)                                                 not null,
+    fb_id      varchar(50)                                                 null,
+    gg_id      varchar(50)                                                 null,
+    password   varchar(50)                                                 not null,
+    salt       varchar(50)                                                 null,
+    last_name  varchar(50)                                                 not null,
+    first_name varchar(50)                                                 not null,
+    phone      varchar(20)                                                 null,
+    role       enum ('user', 'admin', 'shipper') default 'user'            not null,
+    avatar     json                                                        null,
+    status     int                               default 1                 not null,
+    created_at timestamp                         default CURRENT_TIMESTAMP null,
+    updated_at timestamp                         default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    constraint email
+        unique (email)
+);
+
